@@ -7,18 +7,13 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
   - [Setup](#setup)
   - [Usage](#usage)
     - [Step 1 — Configure credentials (one-time)](#step-1--configure-credentials-one-time)
-    - [Step 2 — Open your AI IDE](#step-2--open-your-ai-ide)
-    - [Step 3 — Ask the agent to review an MR](#step-3--ask-the-agent-to-review-an-mr)
-    - [Claude Code](#claude-code)
-    - [Cursor](#cursor)
-    - [GitHub Copilot (VS Code)](#github-copilot-vs-code)
+    - [Step 2 — Review an MR with your AI agent](#step-2--review-an-mr-with-your-ai-agent)
     - [How it works end-to-end](#how-it-works-end-to-end)
   - [Commands](#commands)
     - [Configure GitLab credentials](#configure-gitlab-credentials)
     - [Fetch MR context](#fetch-mr-context)
   - [Project structure](#project-structure)
   - [Roadmap](#roadmap)
-
 
 ## Requirements
 
@@ -32,6 +27,20 @@ npm run build
 npm link        # makes `ai-review` available globally
 ```
 
+Alternatively, install as a global npm package:
+
+```bash
+npm install
+npm run build
+npm install -g .   # installs `ai-review` globally via npm
+```
+
+To uninstall the global package later:
+
+```bash
+npm uninstall -g ai-review-cli
+```
+
 Or run directly without building:
 
 ```bash
@@ -42,7 +51,7 @@ npx tsx src/cli/index.ts <command>
 
 ## Usage
 
-This tool acts as a bridge between your AI IDE and GitLab. The agent calls `ai-review` to fetch structured MR context, then performs its own code review and optionally posts comments back.
+This tool acts as a bridge between your AI IDE and Git Provider(Gitlab). The agent calls `ai-review` to fetch structured MR context, then performs its own code review and optionally posts comments back.
 
 ### Step 1 — Configure credentials (one-time)
 
@@ -54,86 +63,18 @@ ai-review configure gitlab
 
 You will be prompted for your GitLab base URL and a Personal Access Token with `api` and `read_repository` scopes.
 
-### Step 2 — Open your AI IDE
+### Step 2 — Review an MR with your AI agent
 
-Navigate to the project you are reviewing in your IDE. Having the repository open is optional—the CLI only needs the MR URL.
-
-### Step 3 — Ask the agent to review an MR
-
-Give the agent the full GitLab Merge Request URL and ask it to perform a code review. The examples below show the exact phrasing and setup for each supported IDE.
-
----
-
-### Claude Code
-
-Claude Code can execute shell commands directly, so no extra configuration is needed.
-
-1. Open a terminal in Claude Code or start a session in your repo directory.
-2. Paste a prompt like:
+1. Open AI Agent chat in your IDE (e.g. `Cmd+Shift+C` for Claude Code, `Cmd+I` for Cursor, `Cmd+Alt+I` for GitHub Copilot)
+2. Paste this:
 
    ```
-   Review this MR and give me detailed feedback:
-   https://gitlab.com/group/repo/-/merge_requests/123
+   Run `ai-review get-context "<MR_URL>"` and review its changes in the output file
    ```
 
-3. Claude will run:
+   The command will fetch the MR context (title, description, changed files with diffs) and write it to a JSON file (`ai-review-output/review.json` by default).
 
-   ```bash
-   ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
-   ```
-
-4. It reads the JSON output, analyses the diffs, and returns a structured review.
-
-> **Tip:** Follow up with _"Post your review comments to the MR"_ and Claude will run `ai-review post-comments` once that phase is available.
-
----
-
-### Cursor
-
-Cursor's Agent mode can run terminal commands autonomously.
-
-1. Open the **Chat** panel and switch to **Agent** mode (the toggle in the top-right of the chat input).
-2. Paste a prompt like:
-
-   ```
-   Use the ai-review CLI to fetch the context for this MR and review it:
-   https://gitlab.mycompany.com/group/repo/-/merge_requests/456
-   ```
-
-3. Cursor will open a terminal and run:
-
-   ```bash
-   ai-review get-context https://gitlab.mycompany.com/group/repo/-/merge_requests/456
-   ```
-
-4. It parses the JSON output and returns an inline code review.
-
-> **Tip:** If `ai-review` is not found, make sure you ran `npm link` during setup, or prefix the command with `npx tsx src/cli/index.ts`.
-
----
-
-### GitHub Copilot (VS Code)
-
-GitHub Copilot requires agent mode (available in VS Code with the Copilot Chat extension).
-
-1. Open the **Copilot Chat** panel (`Ctrl+Alt+I` / `Cmd+Alt+I`).
-2. Switch to **Agent** mode by clicking the mode selector and choosing **Agent**.
-3. Paste a prompt like:
-
-   ```
-   Run ai-review get-context on this MR and review the changes:
-   https://gitlab.com/group/repo/-/merge_requests/789
-   ```
-
-4. Copilot will invoke the terminal tool and run:
-
-   ```bash
-   ai-review get-context https://gitlab.com/group/repo/-/merge_requests/789
-   ```
-
-5. It reads the structured JSON and summarises the review in the chat panel.
-
-> **Tip:** You can add a custom instruction file (`.github/copilot-instructions.md`) with content like _"Use the `ai-review` CLI to fetch MR context before reviewing GitLab merge requests."_ so Copilot applies this automatically.
+3. The AI agent will review the output file and return a structured review.
 
 ---
 
@@ -144,7 +85,7 @@ You (in IDE chat)
     │  "Review MR #123"
     ▼
 AI Agent
-    │  ai-review get-context <MR_URL>
+    │  ai-review get-context <MR_URL> [--stdout | --output <path>]
     ▼
 ai-review CLI   ──►  GitLab API
     │  returns MRContext JSON
@@ -192,21 +133,34 @@ Example credentials file with multiple instances:
 ### Fetch MR context
 
 ```bash
-ai-review get-context <MR_URL>
+ai-review get-context <MR_URL> [--stdout] [--output <path>]
 ```
 
 Pass the full GitLab Merge Request URL — works for both `gitlab.com` and self-hosted instances.
 The correct credentials are selected automatically based on the URL's domain.
 
+| Flag                    | Behaviour                                                                 |
+| ----------------------- | ------------------------------------------------------------------------- |
+| _(none)_                | Writes JSON to `ai-review-output/review.json` and logs the path to stderr |
+| `--stdout`              | Prints JSON to stdout                                                     |
+| `--output <path>`       | Writes JSON to the specified path and logs it to stderr                   |
+| `--output` + `--stdout` | `--output` takes precedence; writes to the specified path                 |
+
 ```bash
-# gitlab.com
+# Default — writes to ai-review-output/review.json
 ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
 
-# self-hosted
+# Print to stdout
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123 --stdout
+
+# Write to a custom path
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123 --output /tmp/mr-context.json
+
+# Self-hosted instance
 ai-review get-context https://gitlab.mycompany.com/group/repo/-/merge_requests/456
 ```
 
-Outputs a JSON object consumed by AI agents:
+The JSON output has the following shape:
 
 ```json
 {
@@ -254,7 +208,7 @@ src/
 ## Roadmap
 
 | Phase | Scope                                 | Status      |
-|-------|---------------------------------------|-------------|
+| ----- | ------------------------------------- | ----------- |
 | 1     | MR Context Fetch CLI                  | ✅ Complete |
 | 2     | Prompt + Structured Output Validation | Planned     |
 | 3     | Comment Publisher                     | Planned     |

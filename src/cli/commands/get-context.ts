@@ -1,7 +1,9 @@
-import { Command } from 'commander';
-import { getGitLabCredentialsForDomain } from '../../utils/credentials';
-import { GitLabProvider } from '../../providers/gitlab/gitlab-provider';
-import { MRContextBuilder } from '../../context/mr-context-builder';
+import * as fs from "fs";
+import * as path from "path";
+import { Command } from "commander";
+import { getGitLabCredentialsForDomain } from "../../utils/credentials";
+import { GitLabProvider } from "../../providers/gitlab/gitlab-provider";
+import { MRContextBuilder } from "../../context/mr-context-builder";
 
 interface ParsedMRUrl {
   domain: string;
@@ -28,20 +30,27 @@ function parseGitLabMRUrl(rawUrl: string): ParsedMRUrl {
     );
   }
 
-  const projectPath = match[1].replace(/^\//, ''); // strip leading slash
+  const projectPath = match[1].replace(/^\//, ""); // strip leading slash
   const mrIid = match[2];
 
   return { domain, projectPath, mrIid };
 }
 
+interface GetContextOptions {
+  stdout?: boolean;
+  output?: string;
+}
+
 export function registerGetContextCommand(program: Command): void {
   program
-    .command('get-context <url>')
+    .command("get-context <url>")
     .description(
-      'Fetch MR context from a GitLab Merge Request URL and output JSON.\n' +
-        'Example: ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123',
+      "Fetch MR context from a GitLab Merge Request URL and output JSON.\n" +
+        "Example: ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123",
     )
-    .action(async (url: string) => {
+    .option("--stdout", "Print output to stdout instead of writing to a file")
+    .option("--output <path>", "Write output to the specified file path")
+    .action(async (url: string, options: GetContextOptions) => {
       try {
         const { domain, projectPath, mrIid } = parseGitLabMRUrl(url);
 
@@ -53,14 +62,27 @@ export function registerGetContextCommand(program: Command): void {
         const builder = new MRContextBuilder(provider);
 
         const context = await builder.build(projectPath, mrIid);
+        const json = JSON.stringify(context, null, 2);
 
-        console.log(JSON.stringify(context, null, 2));
+        // Determine output destination:
+        // --output takes precedence over --stdout.
+        // If neither is provided, default to ai-review-output/review.json.
+        if (options.output) {
+          const outputPath = path.resolve(options.output);
+          fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+          fs.writeFileSync(outputPath, json, "utf-8");
+          console.log(`Output written to: ${outputPath}`);
+        } else if (options.stdout) {
+          console.log(json);
+        } else {
+          const outputPath = path.resolve("ai-review-output", "review.json");
+          fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+          fs.writeFileSync(outputPath, json, "utf-8");
+          console.log(`Output written to: ${outputPath}`);
+        }
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : String(error);
-        console.error(
-          JSON.stringify({ error: 'FETCH_FAILED', message }),
-        );
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(JSON.stringify({ error: "FETCH_FAILED", message }));
         process.exit(1);
       }
     });
