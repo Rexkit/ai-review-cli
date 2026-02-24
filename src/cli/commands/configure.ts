@@ -44,10 +44,27 @@ export function registerConfigureCommand(program: Command): void {
         );
         const baseUrl = baseUrlInput || 'https://gitlab.com';
 
-        credentials.gitlab = { token, baseUrl };
+        let domain: string;
+        try {
+          domain = new URL(baseUrl).hostname;
+        } catch {
+          console.error(
+            JSON.stringify({
+              error: 'INVALID_INPUT',
+              message: `Invalid base URL: ${baseUrl}`,
+            }),
+          );
+          process.exit(1);
+        }
+
+        if (!credentials.gitlab) {
+          credentials.gitlab = {};
+        }
+        credentials.gitlab[domain] = { token, baseUrl };
         await saveCredentials(credentials);
 
         console.log('\nConfiguration saved to ~/.ai-review/credentials.json');
+        console.log(`  Domain   : ${domain}`);
         console.log(`  Base URL : ${baseUrl}`);
         console.log(`  Token    : ${token.slice(0, 8)}...`);
       } catch (error) {

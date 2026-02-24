@@ -2,6 +2,16 @@
 
 A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copilot, etc.) to perform automated Merge Request code reviews against GitLab.
 
+- [ai-review CLI](#ai-review-cli)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Commands](#commands)
+    - [Configure GitLab credentials](#configure-gitlab-credentials)
+    - [Fetch MR context](#fetch-mr-context)
+  - [Project structure](#project-structure)
+  - [Roadmap](#roadmap)
+
+
 ## Requirements
 
 - Node.js 20+
@@ -30,19 +40,46 @@ npx tsx src/cli/index.ts <command>
 ai-review configure gitlab
 ```
 
-Prompts for your Personal Access Token and base URL, then stores them at `~/.ai-review/credentials.json`.
+Prompts for your Personal Access Token and base URL, then stores the entry (keyed by domain) at `~/.ai-review/credentials.json`.
+Run the command once per GitLab instance you want to use.
 
 Required GitLab token scopes: `api`, `read_repository`.
+
+Example credentials file with multiple instances:
+
+```json
+{
+  "gitlab": {
+    "gitlab.com": {
+      "token": "glpat-xxxxx",
+      "baseUrl": "https://gitlab.com"
+    },
+    "gitlab.mycompany.com": {
+      "token": "glpat-yyyyy",
+      "baseUrl": "https://gitlab.mycompany.com"
+    }
+  }
+}
+```
 
 ---
 
 ### Fetch MR context
 
 ```bash
-ai-review get-context <MR_ID> --project-id <PROJECT_ID>
+ai-review get-context <MR_URL>
 ```
 
-`PROJECT_ID` may be a numeric ID (`123`) or a URL-encoded path (`group/repo`).
+Pass the full GitLab Merge Request URL — works for both `gitlab.com` and self-hosted instances.
+The correct credentials are selected automatically based on the URL's domain.
+
+```bash
+# gitlab.com
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
+
+# self-hosted
+ai-review get-context https://gitlab.mycompany.com/group/repo/-/merge_requests/456
+```
 
 Outputs a JSON object consumed by AI agents:
 

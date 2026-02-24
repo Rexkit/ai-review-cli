@@ -157,8 +157,14 @@ Example:
 ```json
 {
   "gitlab": {
-    "token": "glpat-xxxxx",
-    "baseUrl": "https://gitlab.com"
+    "gitlab.com": {
+      "token": "glpat-xxxxx",
+      "baseUrl": "https://gitlab.com"
+    },
+    "gitlab.mycompany.com": {
+      "token": "glpat-yyyyy",
+      "baseUrl": "https://gitlab.mycompany.com"
+    }
   }
 }
 ```
@@ -168,8 +174,20 @@ Example:
 ### Fetch MR Context
 
 ```bash
-ai-review get-context <MR_ID> \
-  --project-id <PROJECT_ID>
+ai-review get-context <MR_URL>
+```
+
+Pass the full GitLab Merge Request URL. The domain is used to automatically select the
+correct credentials from `~/.ai-review/credentials.json`.
+
+Examples:
+
+```bash
+# gitlab.com
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
+
+# self-hosted instance
+ai-review get-context https://gitlab.mycompany.com/group/repo/-/merge_requests/456
 ```
 
 Output:
@@ -199,10 +217,12 @@ Ensures output follows schema before posting.
 ### Post Comments
 
 ```bash
-ai-review post-comments <MR_ID> \
-  --project-id <PROJECT_ID> \
+ai-review post-comments <MR_URL> \
   --input review.json
 ```
+
+The MR URL is parsed to resolve the domain, project path, and MR IID, and
+credentials are selected automatically based on the URL's domain.
 
 ---
 
@@ -224,14 +244,25 @@ ai-review post-comments <MR_ID> \
 
 Structure:
 
+Credentials are keyed by hostname to support multiple GitLab instances
+(gitlab.com and any number of self-hosted instances):
+
 ```json
 {
   "gitlab": {
-    "token": "...",
-    "baseUrl": "https://gitlab.com"
+    "gitlab.com": {
+      "token": "glpat-xxxxx",
+      "baseUrl": "https://gitlab.com"
+    },
+    "gitlab.mycompany.com": {
+      "token": "glpat-yyyyy",
+      "baseUrl": "https://gitlab.mycompany.com"
+    }
   }
 }
 ```
+
+Run `ai-review configure gitlab` once per GitLab instance you need to access.
 
 ---
 
@@ -506,8 +537,10 @@ Help me review this MR 123
 ## Step 2 — Agent calls CLI
 
 ```
-ai-review get-context 123 --project-id 456
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
 ```
+
+The domain (`gitlab.com`) is used to select the correct credentials automatically.
 
 ---
 
@@ -524,8 +557,7 @@ review.json
 ## Step 4 — Agent posts comments
 
 ```
-ai-review post-comments 123 \
-  --project-id 456 \
+ai-review post-comments https://gitlab.com/group/repo/-/merge_requests/123 \
   --input review.json
 ```
 

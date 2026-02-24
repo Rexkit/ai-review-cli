@@ -7,8 +7,17 @@ export interface GitLabCredentials {
   baseUrl: string;
 }
 
+/**
+ * Credentials are keyed by hostname, e.g.:
+ * {
+ *   "gitlab": {
+ *     "gitlab.com":           { token: "...", baseUrl: "https://gitlab.com" },
+ *     "gitlab.mycompany.com": { token: "...", baseUrl: "https://gitlab.mycompany.com" }
+ *   }
+ * }
+ */
 export interface Credentials {
-  gitlab?: GitLabCredentials;
+  gitlab?: Record<string, GitLabCredentials>;
 }
 
 const CREDENTIALS_DIR = path.join(os.homedir(), '.ai-review');
@@ -32,12 +41,20 @@ export async function saveCredentials(credentials: Credentials): Promise<void> {
   );
 }
 
-export async function getGitLabCredentials(): Promise<GitLabCredentials> {
+/**
+ * Returns GitLab credentials for the specified hostname.
+ * Throws if no credentials have been configured for that domain.
+ */
+export async function getGitLabCredentialsForDomain(
+  domain: string,
+): Promise<GitLabCredentials> {
   const credentials = await loadCredentials();
-  if (!credentials.gitlab) {
+  const entry = credentials.gitlab?.[domain];
+  if (!entry) {
     throw new Error(
-      'GitLab credentials not configured. Run: ai-review configure gitlab',
+      `No GitLab credentials configured for domain "${domain}". ` +
+        `Run: ai-review configure gitlab`,
     );
   }
-  return credentials.gitlab;
+  return entry;
 }
