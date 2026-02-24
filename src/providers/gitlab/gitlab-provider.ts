@@ -1,0 +1,134 @@
+import {
+  GitProvider,
+  MergeRequest,
+  FileDiff,
+  ReviewComment,
+} from '../base';
+import { GitLabClient } from './gitlab-client';
+import { detectLanguage } from '../../context/diff-parser';
+
+interface RawMergeRequest {
+  id: number;
+  iid: number;
+  title: string;
+  description: string | null;
+  source_branch: string;
+  target_branch: string;
+}
+
+interface RawChange {
+  old_path: string;
+  new_path: string;
+  diff: string;
+  new_file: boolean;
+  deleted_file: boolean;
+  renamed_file: boolean;
+}
+
+interface RawChangesResponse {
+  changes: RawChange[];
+}
+
+export class GitLabProvider implements GitProvider {
+  private client: GitLabClient;
+
+  constructor(baseUrl: string, token: string) {
+    this.client = new GitLabClient(baseUrl, token);
+  }
+
+  async getMergeRequest(
+    projectId: string,
+    mrId: string,
+  ): Promise<MergeRequest> {
+    const raw = (await this.client.getMergeRequest(
+      projectId,
+      mrId,
+    )) as RawMergeRequest;
+
+    return {
+      id: raw.id,
+      iid: raw.iid,
+      title: raw.title,
+      description: raw.description ?? '',
+      sourceBranch: raw.source_branch,
+      targetBranch: raw.target_branch,
+    };
+  }
+
+  async getMergeRequestChanges(
+    projectId: string,
+    mrId: string,
+  ): Promise<FileDiff[]> {
+    const raw = (await this.client.getMergeRequestChanges(
+      projectId,
+      mrId,
+    )) as RawChangesResponse;
+
+    const changes: RawChange[] = raw.changes ?? [];
+
+    return changes
+      .filter((change) => !isBinaryOrExcluded(change))
+      .map((change) => ({
+        path: change.new_path ?? change.old_path,
+        language: detectLanguage(change.new_path ?? change.old_path),
+        diff: change.diff ?? '',
+      }));
+  }
+
+  async postReviewComments(
+    projectId: string,
+    mrId: string,
+    comments: ReviewComment[],
+  ): Promise<void> {
+    for (const comment of comments) {
+      await this.client.postDiscussion(
+        projectId,
+        mrId,
+        comment.comment,
+        {
+          position_type: 'text',
+          new_path: comment.file,
+          new_line: comment.line,
+        },
+      );
+    }
+  }
+}
+
+function isBinaryOrExcluded(change: RawChange): boolean {
+  // Binary files have an empty diff without being new/deleted/renamed
+  if (
+    change.diff === '' &&
+    !change.new_file &&
+    !change.deleted_file &&
+    !change.renamed_file
+  ) {
+    return true;
+  }
+
+  // Large diffs (>200KB)
+  if (change.diff && change.diff.length > 200 * 1024) {
+    return true;
+  }
+
+  // Lock files
+  const lockFileNames = [
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+    'Gemfile.lock',
+    'Pipfile.lock',
+    'poetry.lock',
+    'composer.lock',
+    'go.sum',
+  ];
+
+  const filePath = change.new_path ?? change.old_path ?? '';
+  const fileName = filePath.split('/').pop() ?? '';
+
+  if (lockFileNames.includes(fileName)) {
+    return true;
+  }
+
+  return false;
+}
