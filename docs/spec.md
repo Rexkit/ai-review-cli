@@ -174,19 +174,34 @@ Example:
 ### Fetch MR Context
 
 ```bash
-ai-review get-context <MR_URL>
+ai-review get-context <MR_URL> [--stdout] [--output <path>]
 ```
 
 Pass the full GitLab Merge Request URL. The domain is used to automatically select the
 correct credentials from `~/.ai-review/credentials.json`.
 
+#### Output destination flags
+
+| Flag | Behaviour |
+|------|-----------|
+| _(none)_ | Writes JSON to `ai-review-output/review.json` (relative to cwd); logs path to stderr |
+| `--stdout` | Prints JSON to stdout |
+| `--output <path>` | Writes JSON to the specified path; logs path to stderr |
+| `--output` + `--stdout` | `--output` takes precedence |
+
 Examples:
 
 ```bash
-# gitlab.com
+# Default — writes to ai-review-output/review.json
 ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
 
-# self-hosted instance
+# Stdout (suitable for piping or direct agent consumption)
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123 --stdout
+
+# Custom output path
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123 --output /tmp/mr-context.json
+
+# Self-hosted instance
 ai-review get-context https://gitlab.mycompany.com/group/repo/-/merge_requests/456
 ```
 
@@ -537,10 +552,12 @@ Help me review this MR 123
 ## Step 2 — Agent calls CLI
 
 ```
-ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
+ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123 --stdout
 ```
 
 The domain (`gitlab.com`) is used to select the correct credentials automatically.
+Use `--stdout` when the agent reads the JSON directly from stdout, or omit the flag
+to have the output saved to `ai-review-output/review.json`.
 
 ---
 
