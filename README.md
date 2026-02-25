@@ -74,14 +74,14 @@ You will be prompted for your GitLab base URL and a Personal Access Token with `
 ai-review get-context "<MR_URL>"
 ```
 
-Fetches the MR title, description, and all changed files with annotated diffs. Writes context to `ai-review-output/context.json` by default.
+Fetches the MR title, description, and all changed files with annotated diffs. Writes context to `~/.ai-review/mr-context.json` by default.
 
 ### Step 3 — Review with your AI agent
 
 Open AI Agent chat in your IDE (e.g. `Cmd+Shift+C` for Claude Code, `Cmd+I` for Cursor) and ask it to review the context file:
 
 ```
-Review the MR context in ai-review-output/context.json and return a structured review JSON with this format:
+Review the MR context in ~/.ai-review/mr-context.json and return a structured review JSON with this format:
 
 {
   "comments": [
@@ -182,15 +182,15 @@ ai-review get-context <MR_URL> [--stdout] [--output <path>]
 Pass the full GitLab Merge Request URL — works for both `gitlab.com` and self-hosted instances.
 The correct credentials are selected automatically based on the URL's domain.
 
-| Flag                    | Behaviour                                                                 |
-| ----------------------- | ------------------------------------------------------------------------- |
-| _(none)_                | Writes JSON to `ai-review-output/review.json` and logs the path to stderr |
-| `--stdout`              | Prints JSON to stdout                                                     |
-| `--output <path>`       | Writes JSON to the specified path and logs it to stderr                   |
-| `--output` + `--stdout` | `--output` takes precedence; writes to the specified path                 |
+| Flag                    | Behaviour                                                                   |
+| ----------------------- | --------------------------------------------------------------------------- |
+| _(none)_                | Writes JSON to `~/.ai-review/mr-context.json` and logs the path to stderr   |
+| `--stdout`              | Prints JSON to stdout                                                       |
+| `--output <path>`       | Writes JSON to the specified path and logs it to stderr                     |
+| `--output` + `--stdout` | `--output` takes precedence; writes to the specified path                   |
 
 ```bash
-# Default — writes to ai-review-output/review.json
+# Default — writes to ~/.ai-review/mr-context.json
 ai-review get-context https://gitlab.com/group/repo/-/merge_requests/123
 
 # Print to stdout

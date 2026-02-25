@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { Command } from 'commander';
 import { getGitLabCredentialsForDomain } from '../../utils/credentials';
@@ -66,7 +67,7 @@ export function registerGetContextCommand(program: Command): void {
 
         // Determine output destination:
         // --output takes precedence over --stdout.
-        // If neither is provided, default to ai-review-output/context.json.
+        // If neither is provided, default to ~/.ai-review/mr-context.json.
         if (options.output) {
           const outputPath = path.resolve(options.output);
           fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -75,7 +76,7 @@ export function registerGetContextCommand(program: Command): void {
         } else if (options.stdout) {
           console.log(json);
         } else {
-          const outputPath = path.resolve('ai-review-output', 'context.json');
+          const outputPath = path.join(os.homedir(), '.ai-review', 'mr-context.json');
           fs.mkdirSync(path.dirname(outputPath), { recursive: true });
           fs.writeFileSync(outputPath, json, 'utf-8');
           console.log(`Output written to: ${outputPath}`);
