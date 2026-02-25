@@ -60,8 +60,8 @@ Agent Tool Discovery
 
 | Phase            | Scope                                 |
 | ---------------- | ------------------------------------- |
-| Phase 1          | MR Context Fetch CLI                  |
-| Phase 2          | Prompt + Structured Output Validation |
+| Phase 1 ✅        | MR Context Fetch CLI                  |
+| Phase 2 ✅        | Prompt + Structured Output Validation |
 | Phase 3          | Comment Publisher                     |
 | Phase 4 (future) | MCP Server                            |
 
@@ -636,8 +636,8 @@ ai-review post-comments https://gitlab.com/group/repo/-/merge_requests/123 \
 
 ## Phase 2
 
-- Review schema validation
-- Output validator command
+- `src/schema/review-output.schema.ts` — `ReviewSchema` Zod definition
+- `src/cli/commands/validate-output.ts` — `validate-output` command
 
 ## Phase 3
 

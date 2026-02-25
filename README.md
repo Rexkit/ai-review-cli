@@ -7,11 +7,14 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
   - [Setup](#setup)
   - [Usage](#usage)
     - [Step 1 — Configure credentials (one-time)](#step-1--configure-credentials-one-time)
-    - [Step 2 — Review an MR with your AI agent](#step-2--review-an-mr-with-your-ai-agent)
+    - [Step 2 — Fetch MR context](#step-2--fetch-mr-context)
+    - [Step 3 — Review with your AI agent](#step-3--review-with-your-ai-agent)
+    - [Step 4 — Validate the review output](#step-4--validate-the-review-output)
     - [How it works end-to-end](#how-it-works-end-to-end)
   - [Commands](#commands)
     - [Configure GitLab credentials](#configure-gitlab-credentials)
     - [Fetch MR context](#fetch-mr-context)
+    - [Validate review output](#validate-review-output)
   - [Project structure](#project-structure)
   - [Roadmap](#roadmap)
 
@@ -51,7 +54,7 @@ npx tsx src/cli/index.ts <command>
 
 ## Usage
 
-This tool acts as a bridge between your AI IDE and Git Provider(Gitlab). The agent calls `ai-review` to fetch structured MR context, then performs its own code review and optionally posts comments back.
+This tool acts as a bridge between your AI IDE and Git Provider (GitLab). The agent calls `ai-review` to fetch structured MR context, performs its own code review, and validates the output against a schema before posting comments back.
 
 ### Step 1 — Configure credentials (one-time)
 
@@ -63,18 +66,42 @@ ai-review configure gitlab
 
 You will be prompted for your GitLab base URL and a Personal Access Token with `api` and `read_repository` scopes.
 
-### Step 2 — Review an MR with your AI agent
+### Step 2 — Fetch MR context
 
-1. Open AI Agent chat in your IDE (e.g. `Cmd+Shift+C` for Claude Code, `Cmd+I` for Cursor, `Cmd+Alt+I` for GitHub Copilot)
-2. Paste this:
+```bash
+ai-review get-context "<MR_URL>"
+```
 
-   ```
-   Run `ai-review get-context "<MR_URL>"` and review its changes in the output file
-   ```
+Fetches the MR title, description, and all changed files with annotated diffs. Writes context to `ai-review-output/context.json` by default.
 
-   The command will fetch the MR context (title, description, changed files with diffs) and write it to a JSON file (`ai-review-output/review.json` by default).
+### Step 3 — Review with your AI agent
 
-3. The AI agent will review the output file and return a structured review.
+Open AI Agent chat in your IDE (e.g. `Cmd+Shift+C` for Claude Code, `Cmd+I` for Cursor) and ask it to review the context file:
+
+```
+Review the MR context in ai-review-output/context.json and return a structured review JSON with this format:
+
+{
+  "comments": [
+    {
+      "file": "<file path>",
+      "line": <line number>,
+      "severity": "critical" | "warning" | "suggestion",
+      "comment": "<review comment>"
+    }
+  ]
+}
+
+Save the result to review.json.
+```
+
+### Step 4 — Validate the review output
+
+```bash
+ai-review validate-output review.json
+```
+
+Validates the agent's output against the review schema before posting. Exits with code 1 and a structured error if the output is malformed.
 
 ---
 
@@ -90,8 +117,11 @@ AI Agent
 ai-review CLI   ──►  GitLab API
     │  returns MRContext JSON
     ▼
-AI Agent  (runs code review)
-    │  structured feedback
+AI Agent  (runs code review → writes review.json)
+    │  ai-review validate-output review.json
+    ▼
+ai-review CLI  (schema validation)
+    │  structured feedback (validated)
     ▼
 You
 ```
@@ -180,6 +210,54 @@ The JSON output has the following shape:
 
 ---
 
+### Validate review output
+
+```bash
+ai-review validate-output <file>
+```
+
+Validates an AI-generated review JSON file against the structured review output schema before posting comments.
+
+```bash
+ai-review validate-output review.json
+```
+
+Expected input schema:
+
+```json
+{
+  "comments": [
+    {
+      "file": "src/foo.ts",
+      "line": 42,
+      "severity": "warning",
+      "comment": "This function has no error handling."
+    }
+  ]
+}
+```
+
+| Field      | Type                                          | Description                     |
+| ---------- | --------------------------------------------- | ------------------------------- |
+| `file`     | `string`                                      | File path relative to repo root |
+| `line`     | `number`                                      | Line number in the new file     |
+| `severity` | `"critical" \| "warning" \| "suggestion"`     | Severity level of the comment   |
+| `comment`  | `string`                                      | The review comment text         |
+
+On success, prints a summary to stdout:
+
+```
+Valid review output: 5 comments
+```
+
+On failure, prints a structured error to stderr and exits with code 1:
+
+```json
+{ "error": "INVALID_SCHEMA", "message": "comments.0.severity: Invalid enum value..." }
+```
+
+---
+
 ## Project structure
 
 ```
@@ -189,6 +267,7 @@ src/
     commands/
       configure.ts            # `configure gitlab`
       get-context.ts          # `get-context`
+      validate-output.ts      # `validate-output`
   providers/
     base.ts                   # GitProvider interface
     gitlab/
@@ -199,6 +278,7 @@ src/
     mr-context-builder.ts     # Assembles MRContext from provider
   schema/
     mr-context.schema.ts      # Zod schema for MRContext
+    review-output.schema.ts   # Zod schema for AI review output
   utils/
     credentials.ts            # Read/write ~/.ai-review/credentials.json
 ```
@@ -210,6 +290,6 @@ src/
 | Phase | Scope                                 | Status      |
 | ----- | ------------------------------------- | ----------- |
 | 1     | MR Context Fetch CLI                  | ✅ Complete |
-| 2     | Prompt + Structured Output Validation | Planned     |
+| 2     | Prompt + Structured Output Validation | ✅ Complete |
 | 3     | Comment Publisher                     | Planned     |
 | 4     | MCP Server                            | Future      |

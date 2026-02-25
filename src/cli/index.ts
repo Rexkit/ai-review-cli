@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { registerConfigureCommand } from './commands/configure';
 import { registerGetContextCommand } from './commands/get-context';
+import { registerValidateOutputCommand } from './commands/validate-output';
 
 const program = new Command();
 
@@ -15,5 +16,6 @@ program
 
 registerConfigureCommand(program);
 registerGetContextCommand(program);
+registerValidateOutputCommand(program);
 
 program.parse(process.argv);
