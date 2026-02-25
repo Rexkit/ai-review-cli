@@ -59,6 +59,6 @@ All errors are printed as structured JSON to stderr:
 }
 ```
 
-### Phase gates
+### Agent skill
 
-`src/schema/review-output.schema.ts` and `src/cli/commands/validate-output.ts` / `post-comments.ts` do not exist yet — they are Phase 2 and Phase 3 work. `docs/spec.md` is the authoritative reference for planned behaviour.
+A Claude Code custom command lives at `.claude/commands/review-mr.md`. Invoking `/review-mr [MR_URL]` runs the full review workflow (check config → fetch context → generate review → validate → prompt to post).
