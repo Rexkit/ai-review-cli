@@ -1,3 +1,9 @@
+## [1.0.1](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.0...v1.0.1) (2026-02-26)
+
+### Bug Fixes
+
+* add CLI version check command and update versioning in index ([29cec39](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/commit/29cec39af6b78f3bfcc1d6aa6131de3eca889243))
+
 ## 1.0.0 (2026-02-26)
 
 ### Features
