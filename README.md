@@ -5,7 +5,7 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
 - [ai-review CLI](#ai-review-cli)
   - [Requirements](#requirements)
   - [Installation](#installation)
-    - [Option A — Install from GitLab URL (recommended)](#option-a--install-from-gitlab-url-recommended)
+    - [Option A — Install from GitLab Package Registry (recommended)](#option-a--install-from-gitlab-package-registry-recommended)
     - [Option B — Local development](#option-b--local-development)
   - [Usage](#usage)
     - [Step 1 — Configure credentials (one-time)](#step-1--configure-credentials-one-time)
@@ -28,12 +28,19 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
 
 ## Installation
 
-### Option A — Install from GitLab URL (recommended)
+### Option A — Install from GitLab Package Registry (recommended)
 
-No build step required on your machine. npm clones the repo and compiles TypeScript automatically via the `prepare` script.
+Authenticate once to the project-scoped registry, then install the published package:
 
 ```bash
-npm install -g git+https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli.git
+# Point the @sertiscorp scope to this project registry
+npm config set @sertiscorp:registry https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/npm/
+
+# Authenticate (use a GitLab PAT with read_api or read_package_registry, or CI_JOB_TOKEN in CI)
+npm set //gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/npm/:_authToken <TOKEN>
+
+# Install globally
+npm install -g @sertiscorp/ai-review-cli
 ```
 
 ### Option B — Local development
@@ -49,7 +56,7 @@ npm link        # makes `ai-review` available globally
 To uninstall:
 
 ```bash
-npm uninstall -g ai-review-cli
+npm uninstall -g @sertiscorp/ai-review-cli
 ```
 
 Run directly without building:
