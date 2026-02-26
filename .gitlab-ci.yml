@@ -32,6 +32,7 @@ release:
   image: node:20-alpine
   variables:
     GIT_DEPTH: 0 # semantic-release needs the full git history
+    NPM_TOKEN: $GL_TOKEN # @semantic-release/npm requires NPM_TOKEN; reuse GL_TOKEN which is already scoped to the GitLab Package Registry
   before_script:
     - apk add --no-cache git
     # Authenticate git pushes (used by @semantic-release/git to commit CHANGELOG)
