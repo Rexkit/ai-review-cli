@@ -121,7 +121,6 @@ package:
           artifacts/ai-review-linux-x64 \
           artifacts/ai-review-linux-arm64 \
           artifacts/ai-review-macos-x64 \
-          artifacts/ai-review-macos-arm64 \
           artifacts/ai-review-win-x64.exe; do
         filename=$(basename "$binary")
         curl --fail --silent --show-error \
@@ -136,7 +135,6 @@ package:
           ai-review-linux-x64 \
           ai-review-linux-arm64 \
           ai-review-macos-x64 \
-          ai-review-macos-arm64 \
           ai-review-win-x64.exe; do
         curl --fail --silent --show-error \
           --request POST \

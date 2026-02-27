@@ -53,17 +53,9 @@ Download the appropriate binary for your platform using `curl` or `Invoke-WebReq
 
 E.g commands:
 
-**macOS (Apple Silicon)**
+**macOS (Intel and Apple Silicon)**
 
-```bash
-curl -L --header "PRIVATE-TOKEN: <TOKEN>" \
-  "https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/generic/ai-review-cli/<VERSION>/ai-review-macos-arm64" \
-  -o ai-review
-chmod +x ai-review
-sudo mv ai-review /usr/local/bin/
-```
-
-**macOS (Intel)**
+> Apple Silicon users should use the x64 binary via Rosetta 2.
 
 ```bash
 curl -L --header "PRIVATE-TOKEN: <TOKEN>" \
