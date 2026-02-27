@@ -1,3 +1,9 @@
+## [1.0.6](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.5...v1.0.6) (2026-02-27)
+
+### Bug Fixes
+
+* **ci:** update build rules and change package image to node:20-slim ([f4c8a63](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/commit/f4c8a63d8249da63645140d89646d6ba3843e4ad))
+
 ## [1.0.5](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.4...v1.0.5) (2026-02-27)
 
 ### Bug Fixes
