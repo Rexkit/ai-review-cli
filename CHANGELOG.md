@@ -1,3 +1,9 @@
+## [1.0.8](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.7...v1.0.8) (2026-02-27)
+
+### Bug Fixes
+
+* **ci:** remove macOS arm64 binary from packaging and update README ([8a5425b](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/commit/8a5425b9acc654cd57a4998403fac959993980de))
+
 ## [1.0.7](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.6...v1.0.7) (2026-02-27)
 
 ### Bug Fixes
