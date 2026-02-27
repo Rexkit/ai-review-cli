@@ -1,3 +1,9 @@
+## [1.0.3](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.2...v1.0.3) (2026-02-27)
+
+### Bug Fixes
+
+* update CI workflow rules to handle tag pipelines and skip ci messages ([e4f90a7](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/commit/e4f90a797941e96beaf9d1049fc88f6b02691989))
+
 ## [1.0.2](https://gitlab.com/sertiscorp/dev/se-team/ai-review-cli/compare/v1.0.1...v1.0.2) (2026-02-27)
 
 ### Bug Fixes
