@@ -59,6 +59,20 @@ release:
     - npm ci
     - npm run build
     - npx semantic-release
+    # Explicitly trigger the tag pipeline after semantic-release pushes the tag.
+    # Pushes made from inside a CI job may be silently ignored by GitLab even
+    # with workflow:rules, so we create the pipeline via the API to be certain.
+    - |
+      NEW_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+      if [ -n "$NEW_TAG" ]; then
+        echo "Triggering pipeline for tag ${NEW_TAG}..."
+        curl --fail --silent --show-error \
+          --request POST \
+          --header "PRIVATE-TOKEN: ${GL_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipeline?ref=${NEW_TAG}"
+      else
+        echo "No new tag found, skipping pipeline trigger."
+      fi
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   cache:
