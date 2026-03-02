@@ -1,5 +1,5 @@
 {
-  "name": "@sertiscorp/ai-review-cli",
+  "name": "@zawlinnnaing/ai-review-cli",
   "version": "1.0.8",
   "description": "AI-powered code review CLI for GitLab Merge Requests",
   "main": "dist/cli/index.js",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/gitlab": "^13.0.3",
+    "@semantic-release/github": "^10.3.5",
     "@semantic-release/npm": "^12.0.1",
     "@types/diff": "^7.0.2",
     "@types/node": "^20.19.33",
