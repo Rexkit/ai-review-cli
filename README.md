@@ -112,6 +112,8 @@ npx tsx src/cli/index.ts <command>
 
 ## Agent skill
 
+> Note: CLI must be installed via Option A or B for the skill to work correctly with the expected command name `ai-review`.
+
 This repository ships a reusable AI agent skill that teaches your agent how to run the full review workflow automatically. The full skill description is in [`SKILL.md`](./SKILL.md).
 
 Install it globally or into your current project with:
