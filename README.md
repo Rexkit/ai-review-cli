@@ -5,8 +5,8 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
 - [ai-review CLI](#ai-review-cli)
   - [Requirements](#requirements)
   - [Installation](#installation)
-    - [Option A — Download pre-built binary from GitLab release (recommended)](#option-a--download-pre-built-binary-from-gitlab-release-recommended)
-    - [Option B — Install from GitLab Package Registry](#option-b--install-from-gitlab-package-registry)
+    - [Option A — Download pre-built binary from GitHub release (recommended)](#option-a--download-pre-built-binary-from-github-release-recommended)
+    - [Option B — Install from npm registry](#option-b--install-from-npm-registry)
     - [Option C — Local development](#option-c--local-development)
   - [Usage](#usage)
     - [Step 1 — Configure credentials (one-time)](#step-1--configure-credentials-one-time)
@@ -30,21 +30,20 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
 
 ## Installation
 
-### Option A — Download pre-built binary from GitLab release (recommended)
+### Option A — Download pre-built binary from GitHub release (recommended)
 
-Pre-built binaries are published to the [GitLab releases page](https://github.com/zawlinnnaing/ai-review-cli/-/releases) for every version tag. No Node.js required.
+Pre-built binaries are published to the [GitHub releases page](https://github.com/zawlinnnaing/ai-review-cli/releases) for every version tag. No Node.js required.
 
 Download the appropriate binary for your platform using `curl` or `Invoke-WebRequest` in PowerShell, make it executable, and move it to a directory on your PATH.
 
-> NOTE: If you already downloaded a release binary from Gitlab UI, you don't need to run command to download. Just make it executable and move to PATH. Command must be named `ai-review` (or `ai-review.exe` on Windows) to work correctly with [mr-review](https://gitlab.com/sertiscorp/dev/se-team/agent-skills/-/blob/main/skills/mr-review/SKILL.md) skill.
+> NOTE: If you already downloaded a release binary from the GitHub releases page, you don't need to run the download command. Just make it executable and move it to your PATH. The binary must be named `ai-review` (or `ai-review.exe` on Windows) to work correctly with the bundled [SKILL.md](https://github.com/zawlinnnaing/ai-review-cli/blob/main/SKILL.md) agent skill.
 
 **macOS (Intel and Apple Silicon)**
 
 > Apple Silicon users should use the x64 binary via Rosetta 2.
 
 ```bash
-curl -L --header "PRIVATE-TOKEN: <TOKEN>" \
-  "https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/generic/ai-review-cli/<VERSION>/ai-review-macos-x64" \
+curl -L "https://github.com/zawlinnnaing/ai-review-cli/releases/download/v<VERSION>/ai-review-macos-x64" \
   -o ai-review
 chmod +x ai-review
 sudo mv ai-review /usr/local/bin/
@@ -53,8 +52,7 @@ sudo mv ai-review /usr/local/bin/
 **Linux (x64)**
 
 ```bash
-curl -L --header "PRIVATE-TOKEN: <TOKEN>" \
-  "https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/generic/ai-review-cli/<VERSION>/ai-review-linux-x64" \
+curl -L "https://github.com/zawlinnnaing/ai-review-cli/releases/download/v<VERSION>/ai-review-linux-x64" \
   -o ai-review
 chmod +x ai-review
 sudo mv ai-review /usr/local/bin/
@@ -63,8 +61,7 @@ sudo mv ai-review /usr/local/bin/
 **Linux (ARM64)**
 
 ```bash
-curl -L --header "PRIVATE-TOKEN: <TOKEN>" \
-  "https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/generic/ai-review-cli/<VERSION>/ai-review-linux-arm64" \
+curl -L "https://github.com/zawlinnnaing/ai-review-cli/releases/download/v<VERSION>/ai-review-linux-arm64" \
   -o ai-review
 chmod +x ai-review
 sudo mv ai-review /usr/local/bin/
@@ -73,26 +70,18 @@ sudo mv ai-review /usr/local/bin/
 **Windows (x64)**
 
 ```powershell
-Invoke-WebRequest -Uri "https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/generic/ai-review-cli/<VERSION>/ai-review-win-x64.exe" `
-  -Headers @{"PRIVATE-TOKEN" = "<TOKEN>"} `
+Invoke-WebRequest -Uri "https://github.com/zawlinnnaing/ai-review-cli/releases/download/v<VERSION>/ai-review-win-x64.exe" `
   -OutFile "ai-review.exe"
 # Move ai-review.exe to a directory on your PATH
 ```
 
-Replace `<TOKEN>` with a GitLab PAT with `read_api` or `read_package_registry` scope, and `<VERSION>` with the desired release version (e.g. `1.2.3`). Available releases are listed on the [releases page](https://github.com/zawlinnnaing/ai-review-cli/-/releases).
+Replace `<VERSION>` with the desired release version (e.g. `1.2.3`). Available releases are listed on the [releases page](https://github.com/zawlinnnaing/ai-review-cli/releases).
 
-### Option B — Install from GitLab Package Registry
+### Option B — Install from npm registry
 
-Authenticate once to the project-scoped registry, then install the published package:
+The package is published to the public npm registry:
 
 ```bash
-# Point the @sertiscorp scope to this project registry
-npm config set @sertiscorp:registry https://gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/npm/
-
-# Authenticate (use a GitLab PAT with read_api or read_package_registry, or CI_JOB_TOKEN in CI)
-npm set //gitlab.com/api/v4/projects/sertiscorp%2Fdev%2Fse-team%2Fai-review-cli/packages/npm/:_authToken <TOKEN>
-
-# Install globally
 npm install -g @zawlinnnaing/ai-review-cli
 ```
 
@@ -144,7 +133,15 @@ Fetches the MR title, description, and all changed files with annotated diffs. W
 
 ### Step 3 — Review with your AI agent
 
-Open AI Agent chat in your IDE (e.g. `Cmd+Shift+C` for Claude Code, `Cmd+I` for Cursor) and ask it to review the context file:
+**Claude Code users** can run the entire review pipeline (Steps 2–5) in one go using the bundled slash command:
+
+```
+/review-mr <MR_URL>
+```
+
+The `/review-mr` command fetches context, analyses the diff, validates the output, and optionally posts comments — all automatically.
+
+**For other AI agents** (Cursor, GitHub Copilot, etc.), open the agent chat (`Cmd+I` in Cursor) and ask it to review the context file:
 
 ```
 Review the MR context in ~/.ai-review/mr-context.json and return a structured review JSON with this format:
