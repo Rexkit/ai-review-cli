@@ -34,12 +34,16 @@ jobs:
         id: tag
         run: |
           git fetch --tags
-          TAG=$(git tag --points-at "${{ github.event.workflow_run.head_sha }}" \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
-            | head -n1)
+          # semantic-release creates a new release commit on top of head_sha and
+          # places the version tag there. So we look for a semver tag whose direct
+          # parent is head_sha, rather than --points-at head_sha itself.
+          TAG=$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | while read t; do
+            PARENT=$(git rev-parse "${t}^" 2>/dev/null)
+            [ "$PARENT" = "${{ github.event.workflow_run.head_sha }}" ] && echo "$t"
+          done | head -n1)
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           if [ -z "$TAG" ]; then
-            echo "No semver tag found for ${{ github.event.workflow_run.head_sha }} – skipping."
+            echo "No semver tag found for child of ${{ github.event.workflow_run.head_sha }} – skipping."
           else
             echo "Resolved tag: $TAG"
           fi
