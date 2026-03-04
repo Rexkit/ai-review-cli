@@ -3,11 +3,9 @@
 A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copilot, etc.) to perform automated Merge Request code reviews against GitLab.
 
 - [ai-review CLI](#ai-review-cli)
-  - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option A — Download pre-built binary from GitHub release (recommended)](#option-a--download-pre-built-binary-from-github-release-recommended)
     - [Option B — Install from npm registry](#option-b--install-from-npm-registry)
-    - [Option C — Local development](#option-c--local-development)
   - [Agent skill](#agent-skill)
   - [Usage](#usage)
     - [Step 1 — Configure credentials (one-time)](#step-1--configure-credentials-one-time)
@@ -22,12 +20,8 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
     - [Fetch MR context](#fetch-mr-context)
     - [Validate review output](#validate-review-output)
     - [Post review comments](#post-review-comments)
-  - [Project structure](#project-structure)
+  - [Local Development](#local-development)
   - [Roadmap](#roadmap)
-
-## Requirements
-
-- Node.js 20+
 
 ## Installation
 
@@ -84,28 +78,6 @@ The package is published to the public npm registry:
 
 ```bash
 npm install -g @zawlinnnaing/ai-review-cli
-```
-
-### Option C — Local development
-
-Clone the repo and link it globally:
-
-```bash
-npm install
-npm run build
-npm link        # makes `ai-review` available globally
-```
-
-To uninstall:
-
-```bash
-npm uninstall -g @zawlinnnaing/ai-review-cli
-```
-
-Run directly without building:
-
-```bash
-npx tsx src/cli/index.ts <command>
 ```
 
 ---
@@ -411,30 +383,22 @@ On failure, prints a structured error to stderr and exits with code 1:
 
 ---
 
-## Project structure
+## Local Development
 
+### Requirements
+
+- Node.js 20+
+
+### Install dependencies
+
+```bash
+npm install
 ```
-src/
-  cli/
-    index.ts                  # CLI entry point
-    commands/
-      configure.ts            # `configure gitlab`
-      get-context.ts          # `get-context`
-      validate-output.ts      # `validate-output`
-      post-comments.ts        # `post-comments`
-  providers/
-    base.ts                   # GitProvider interface
-    gitlab/
-      gitlab-client.ts        # Raw GitLab API client (axios)
-      gitlab-provider.ts      # GitProvider implementation
-  context/
-    diff-parser.ts            # Language detection, filtering helpers
-    mr-context-builder.ts     # Assembles MRContext from provider
-  schema/
-    mr-context.schema.ts      # Zod schema for MRContext
-    review-output.schema.ts   # Zod schema for AI review output
-  utils/
-    credentials.ts            # Read/write ~/.ai-review/credentials.json
+
+### Run in development mode
+
+```bash
+npm run dev -- <COMMAND> <ARGUMENTS>
 ```
 
 ---
