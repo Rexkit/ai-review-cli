@@ -97,12 +97,16 @@ This repository ships reusable AI agent skills under the [`skills/`](./skills) d
 | Skill | Description |
 |-------|-------------|
 | [`skills/mr-review`](./skills/mr-review/SKILL.md) | Review a GitLab MR: fetch context, analyse, validate, and optionally post inline comments |
+| [`skills/create-mr`](./skills/create-mr/SKILL.md) | Create a GitLab MR interactively: checks credentials, collects branch info, creates the MR, and optionally generates and posts a description summarising the changes |
 
 Install a skill globally or into your current project with:
 
 ```bash
 # MR review skill
-npx skills add https://github.com/zawlinnnaing/ai-review-cli/skills/mr-review
+npx skills add https://github.com/zawlinnnaing/ai-review-cli --skill mr-review
+
+# Create MR skill
+npx skills add https://github.com/zawlinnnaing/ai-review-cli --skill create-mr
 ```
 
 Once installed, your agent can invoke the skill to check credentials, fetch MR context, generate a structured review, validate it, and optionally post comments — all in one step.
