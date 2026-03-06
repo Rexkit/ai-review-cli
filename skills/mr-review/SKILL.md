@@ -43,6 +43,7 @@ ai-review get-context <MR_URL>
 ```
 
 Writes to `~/.ai-review/mr-context.json`. On non-zero exit, surface the error code clearly:
+
 - `CREDENTIALS_NOT_FOUND` → run `ai-review configure gitlab`
 - `INVALID_URL` → ask user to check the URL
 - `API_ERROR` → show the message
@@ -77,17 +78,18 @@ Write the review to `~/.ai-review/review-output.json`:
 ```
 
 The `description` field must always be populated. It should be a Markdown-formatted summary covering:
-- **What changed** — high-level overview of the modifications and provide sequence diagram if it helps explain complex interactions
-- **Why** — inferred intent or purpose of the MR
-- **Risks / notable observations** — anything reviewers should pay special attention to
+
+- **What changed** — a high-level summary of the modifications
+- **Why** — inferred intent or purpose of the changes
+- **Notable details** — any significant design decisions, potential risks, or things reviewers should know
 
 Severity levels:
 
-| Level | When to use |
-|-------|-------------|
-| `critical` | Security vulnerability, data loss risk, or definite bug |
-| `warning` | Performance issue, error handling gap, or bad practice |
-| `suggestion` | Readability, minor style, or optional improvement |
+| Level        | When to use                                             |
+| ------------ | ------------------------------------------------------- |
+| `critical`   | Security vulnerability, data loss risk, or definite bug |
+| `warning`    | Performance issue, error handling gap, or bad practice  |
+| `suggestion` | Readability, minor style, or optional improvement       |
 
 If there are no issues, write `{ "comments": [] }` and tell the user the MR looks clean.
 
@@ -114,6 +116,7 @@ Top findings:
 ### Step 8 — Ask whether to post
 
 Ask the user which minimum severity to post:
+
 1. `suggestion` — all comments
 2. `warning` — warnings and critical only
 3. `critical` — critical only
