@@ -124,12 +124,12 @@ ai-review-cli/
 
 ## Command List
 
-| Command           | Description                    |
-| ----------------- | ------------------------------ |
-| `configure`       | Configure provider credentials |
-| `get-context`     | Fetch MR context               |
-| `validate-output` | Validate AI output JSON        |
-| `post-comments`   | Publish comments to MR         |
+| Command           | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `configure`       | Configure provider credentials and review settings |
+| `get-context`     | Fetch MR context                                   |
+| `validate-output` | Validate AI output JSON                            |
+| `post-comments`   | Publish comments to MR                             |
 
 ---
 
@@ -175,6 +175,36 @@ Example:
 
 ---
 
+### Configure Review Language
+
+```bash
+ai-review configure language
+```
+
+Interactive prompt:
+
+```
+Enter review language [English]:
+```
+
+Stored at:
+
+```
+~/.ai-review/settings.json
+```
+
+Example:
+
+```json
+{
+  "reviewLanguage": "Russian"
+}
+```
+
+`reviewLanguage` controls the human language AI agents should use for generated review descriptions and comments. If the settings file is missing or the field is empty, the default is `English`.
+
+---
+
 ### Fetch MR Context
 
 ```bash
@@ -182,7 +212,7 @@ ai-review get-context <MR_URL> [--stdout] [--output <path>]
 ```
 
 Pass the full GitLab Merge Request URL. The domain is used to automatically select the
-correct credentials from `~/.ai-review/credentials.json`.
+correct credentials from `~/.ai-review/credentials.json`. The configured review language is loaded from `~/.ai-review/settings.json` and embedded into the output context.
 
 #### Output destination flags
 
@@ -217,6 +247,7 @@ Output:
   "description": "...",
   "sourceBranch": "...",
   "targetBranch": "...",
+  "reviewLanguage": "Russian",
   "files": [...]
 }
 ```
@@ -314,6 +345,32 @@ Run `ai-review configure gitlab` once per GitLab instance you need to access.
 
 ---
 
+## Settings File
+
+```
+~/.ai-review/settings.json
+```
+
+Structure:
+
+```json
+{
+  "reviewLanguage": "English"
+}
+```
+
+`reviewLanguage` is a free-form string such as `English`, `Russian`, `Русский`, or `ru`. It is embedded into MR context as `reviewLanguage` so the reviewing agent can generate both the Markdown description and inline comments in the configured language.
+
+Run `ai-review configure language` to update the file interactively, or edit it manually. Missing settings default to:
+
+```json
+{
+  "reviewLanguage": "English"
+}
+```
+
+---
+
 ## Token Scopes (GitLab)
 
 Minimum required:
@@ -390,6 +447,7 @@ POST /projects/:id/merge_requests/:iid/discussions
 - Filter binary files, large diffs, and lock files
 - Detect language for each file
 - Annotate diff lines with line numbers for LLM accuracy
+- Load configured review language for LLM output guidance
 - Normalize structure for LLM usage
 
 ---
@@ -402,6 +460,7 @@ export interface MRContext {
   description: string;
   sourceBranch: string;
   targetBranch: string;
+  reviewLanguage: string;
   files: FileDiff[];
 }
 ```

@@ -18,6 +18,7 @@ A local developer tool that enables AI agents (Claude Code, Cursor, GitHub Copil
   - [Commands](#commands)
     - [Check CLI version](#check-cli-version)
     - [Configure GitLab credentials](#configure-gitlab-credentials)
+    - [Configure review language](#configure-review-language)
     - [Fetch MR context](#fetch-mr-context)
     - [Validate review output](#validate-review-output)
     - [Post review comments](#post-review-comments)
@@ -94,9 +95,9 @@ npm install -g @zawlinnnaing/ai-review-cli
 
 This repository ships reusable AI agent skills under the [`skills/`](./skills) directory:
 
-| Skill | Description |
-|-------|-------------|
-| [`skills/mr-review`](./skills/mr-review/SKILL.md) | Review a GitLab MR: fetch context, analyse, validate, and optionally post inline comments |
+| Skill                                             | Description                                                                                                                                                          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`skills/mr-review`](./skills/mr-review/SKILL.md) | Review a GitLab MR: fetch context, analyse, validate, and optionally post inline comments                                                                            |
 | [`skills/create-mr`](./skills/create-mr/SKILL.md) | Create a GitLab MR interactively: checks credentials, collects branch info, creates the MR, and optionally generates and posts a description summarising the changes |
 
 Install a skill globally or into your current project with:
@@ -126,6 +127,22 @@ ai-review configure gitlab
 ```
 
 You will be prompted for your GitLab base URL and a Personal Access Token with `api` and `read_repository` scopes.
+
+Optionally configure the language that AI agents should use for generated review descriptions and comments:
+
+```bash
+ai-review configure language
+```
+
+This writes `~/.ai-review/settings.json`:
+
+```json
+{
+  "reviewLanguage": "Russian"
+}
+```
+
+If the settings file is missing, the default review language is `English`.
 
 ### Step 2 — Fetch MR context
 
@@ -263,6 +280,26 @@ Example credentials file with multiple instances:
 
 ---
 
+### Configure review language
+
+```bash
+ai-review configure language
+```
+
+Prompts for the language that AI agents should use for generated review descriptions and comments, then stores it at `~/.ai-review/settings.json`.
+
+You can also edit the file manually:
+
+```json
+{
+  "reviewLanguage": "Russian"
+}
+```
+
+If `settings.json` does not exist, `English` is used by default. `ai-review get-context` embeds the resolved language into the MR context as `reviewLanguage`.
+
+---
+
 ### Fetch MR context
 
 ```bash
@@ -270,7 +307,7 @@ ai-review get-context <MR_URL> [--stdout] [--output <path>]
 ```
 
 Pass the full GitLab Merge Request URL — works for both `gitlab.com` and self-hosted instances.
-The correct credentials are selected automatically based on the URL's domain.
+The correct credentials are selected automatically based on the URL's domain. The context also includes `reviewLanguage` loaded from `~/.ai-review/settings.json`, so an AI agent can generate review text in the configured language.
 
 | Flag                    | Behaviour                                                                 |
 | ----------------------- | ------------------------------------------------------------------------- |
@@ -301,6 +338,7 @@ The JSON output has the following shape:
   "description": "...",
   "sourceBranch": "...",
   "targetBranch": "...",
+  "reviewLanguage": "Russian",
   "files": [
     {
       "path": "src/foo.ts",
@@ -429,10 +467,10 @@ ai-review post-description https://gitlab.com/group/repo/-/merge_requests/123 --
 ai-review post-description https://gitlab.com/group/repo/-/merge_requests/123
 ```
 
-| Option           | Description                                                                              |
-| ---------------- | ---------------------------------------------------------------------------------------- |
-| `--text <string>` | Description text to post directly                                                       |
-| `--input <file>` | Path to a JSON file with a `"description"` key (defaults to `review-output.json`)       |
+| Option            | Description                                                                       |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `--text <string>` | Description text to post directly                                                 |
+| `--input <file>`  | Path to a JSON file with a `"description"` key (defaults to `review-output.json`) |
 
 On success, prints:
 
@@ -467,12 +505,12 @@ ai-review create-mr https://gitlab.com/group/repo feature-branch main --title "f
 ai-review create-mr https://gitlab.mycompany.com/group/repo feature-branch main
 ```
 
-| Argument / Option     | Description                                                                 |
-| --------------------- | --------------------------------------------------------------------------- |
-| `<REPO_URL>`          | Full HTTPS URL of the repository (`.git` suffix optional)                   |
-| `<SOURCE_BRANCH>`     | Branch to merge from                                                        |
-| `<TARGET_BRANCH>`     | Branch to merge into                                                        |
-| `--title <string>`    | MR title (defaults to `Merge <source> into <target>`)                       |
+| Argument / Option  | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| `<REPO_URL>`       | Full HTTPS URL of the repository (`.git` suffix optional) |
+| `<SOURCE_BRANCH>`  | Branch to merge from                                      |
+| `<TARGET_BRANCH>`  | Branch to merge into                                      |
+| `--title <string>` | MR title (defaults to `Merge <source> into <target>`)     |
 
 On success, prints the new MR URL and its JSON representation:
 
@@ -489,7 +527,10 @@ Merge request created: https://gitlab.com/group/repo/-/merge_requests/42
 On failure, prints a structured error to stderr and exits with code 1:
 
 ```json
-{ "error": "CREATE_MR_FAILED", "message": "No GitLab credentials configured for domain \"gitlab.com\". Run: ai-review configure gitlab" }
+{
+  "error": "CREATE_MR_FAILED",
+  "message": "No GitLab credentials configured for domain \"gitlab.com\". Run: ai-review configure gitlab"
+}
 ```
 
 ---

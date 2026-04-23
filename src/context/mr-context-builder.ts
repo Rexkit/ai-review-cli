@@ -6,11 +6,15 @@ export interface MRContext {
   description: string;
   sourceBranch: string;
   targetBranch: string;
+  reviewLanguage: string;
   files: FileDiff[];
 }
 
 export class MRContextBuilder {
-  constructor(private readonly provider: GitProvider) {}
+  constructor(
+    private readonly provider: GitProvider,
+    private readonly reviewLanguage: string = 'English',
+  ) {}
 
   /**
    * Fetches MR metadata and file diffs, returning a normalized MRContext
@@ -27,6 +31,7 @@ export class MRContextBuilder {
       description: mr.description,
       sourceBranch: mr.sourceBranch,
       targetBranch: mr.targetBranch,
+      reviewLanguage: this.reviewLanguage,
       files,
     };
   }

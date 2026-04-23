@@ -1,6 +1,11 @@
 import { Command } from 'commander';
 import * as readline from 'readline';
 import { loadCredentials, saveCredentials } from '../../utils/credentials';
+import {
+  getSettingsPath,
+  loadSettings,
+  saveSettings,
+} from '../../utils/settings';
 
 function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({
@@ -69,6 +74,29 @@ export function registerConfigureCommand(program: Command): void {
         console.log(`  Domain   : ${domain}`);
         console.log(`  Base URL : ${baseUrl}`);
         console.log(`  Token    : ${token.slice(0, 8)}...`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(JSON.stringify({ error: 'CONFIGURE_FAILED', message }));
+        process.exit(1);
+      }
+    });
+
+  configure
+    .command('language')
+    .description(
+      'Configure review language (stored at ~/.ai-review/settings.json)',
+    )
+    .action(async () => {
+      try {
+        const settings = await loadSettings();
+        const language = await prompt(
+          `Enter review language [${settings.reviewLanguage}]: `,
+        );
+        settings.reviewLanguage = language || settings.reviewLanguage;
+        await saveSettings(settings);
+
+        console.log(`\nSettings saved to ${getSettingsPath()}`);
+        console.log(`  Review language : ${settings.reviewLanguage}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.error(JSON.stringify({ error: 'CONFIGURE_FAILED', message }));

@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import { getGitLabCredentialsForDomain } from '../../utils/credentials';
 import { GitLabProvider } from '../../providers/gitlab/gitlab-provider';
 import { MRContextBuilder } from '../../context/mr-context-builder';
+import { loadSettings } from '../../utils/settings';
 
 interface ParsedMRUrl {
   domain: string;
@@ -55,12 +56,15 @@ export function registerGetContextCommand(program: Command): void {
       try {
         const { domain, projectPath, mrIid } = parseGitLabMRUrl(url);
 
-        const credentials = await getGitLabCredentialsForDomain(domain);
+        const [credentials, settings] = await Promise.all([
+          getGitLabCredentialsForDomain(domain),
+          loadSettings(),
+        ]);
         const provider = new GitLabProvider(
           credentials.baseUrl,
           credentials.token,
         );
-        const builder = new MRContextBuilder(provider);
+        const builder = new MRContextBuilder(provider, settings.reviewLanguage);
 
         const context = await builder.build(projectPath, mrIid);
         const json = JSON.stringify(context, null, 2);
@@ -76,7 +80,11 @@ export function registerGetContextCommand(program: Command): void {
         } else if (options.stdout) {
           console.log(json);
         } else {
-          const outputPath = path.join(os.homedir(), '.ai-review', 'mr-context.json');
+          const outputPath = path.join(
+            os.homedir(),
+            '.ai-review',
+            'mr-context.json',
+          );
           fs.mkdirSync(path.dirname(outputPath), { recursive: true });
           fs.writeFileSync(outputPath, json, 'utf-8');
           console.log(`Output written to: ${outputPath}`);
