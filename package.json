@@ -1,5 +1,5 @@
 {
-  "name": "@zawlinnnaing/ai-review-cli",
+  "name": "@esperx/ai-review-cli",
   "version": "1.2.0",
   "description": "AI-powered code review CLI for GitLab Merge Requests",
   "main": "dist/cli/index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zawlinnnaing/ai-review-cli.git"
+    "url": "https://github.com/Rexkit/ai-review-cli.git"
   },
   "files": [
     "dist/",
