@@ -11,6 +11,7 @@ export const MRContextSchema = z.object({
   description: z.string(),
   sourceBranch: z.string(),
   targetBranch: z.string(),
+  reviewLanguage: z.string().default('English'),
   files: z.array(FileDiffSchema),
 });
 

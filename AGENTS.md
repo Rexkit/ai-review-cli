@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. Update `docs/spec.md` to reflect the latest code architecture and specifications if necessary.
+This file provides guidance to AI agents when working with code in this repository. Update `docs/spec.md` to reflect the latest code architecture and specifications if necessary.
 
 ## Commands
 

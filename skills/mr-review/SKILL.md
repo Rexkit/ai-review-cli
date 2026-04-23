@@ -31,12 +31,24 @@ cat ~/.ai-review/credentials.json
 
 If the file is missing or has no `gitlab` key, tell the user to run `ai-review configure gitlab` and stop.
 
-### Step 3 — Obtain and validate the MR URL
+### Step 3 — Check review language settings
+
+Read `~/.ai-review/settings.json` if it exists. The expected shape is:
+
+```json
+{
+  "reviewLanguage": "English"
+}
+```
+
+If the file is missing or `reviewLanguage` is empty, use `English`. Generate the MR description and all inline review comments in this language. `ai-review get-context` also embeds this value as `reviewLanguage`; if present in the context, prefer the context value.
+
+### Step 4 — Obtain and validate the MR URL
 
 Use `$ARGUMENTS` if it starts with `http`. Otherwise ask the user.
 Validate the URL matches: `https://<host>/<namespace>/<repo>/-/merge_requests/<number>`.
 
-### Step 4 — Fetch MR context
+### Step 5 — Fetch MR context
 
 ```bash
 ai-review get-context <MR_URL>
@@ -48,9 +60,9 @@ Writes to `~/.ai-review/mr-context.json`. On non-zero exit, surface the error co
 - `INVALID_URL` → ask user to check the URL
 - `API_ERROR` → show the message
 
-### Step 5 — Analyse and generate review
+### Step 6 — Analyse and generate review
 
-Read `~/.ai-review/mr-context.json` and analyse every changed file as a senior engineer. Focus on:
+Read `~/.ai-review/mr-context.json` and analyse every changed file as a senior engineer. Generate the `description` and every `comment` in the configured review language (`reviewLanguage` from the context/settings; default `English`). Focus on:
 
 - **Bugs** — logic errors, off-by-one, null/undefined handling
 - **Security** — injection flaws, hardcoded secrets, improper auth
@@ -93,7 +105,7 @@ Severity levels:
 
 If there are no issues, write `{ "comments": [] }` and tell the user the MR looks clean.
 
-### Step 6 — Validate output
+### Step 7 — Validate output
 
 ```bash
 ai-review validate-output ~/.ai-review/review-output.json
@@ -101,7 +113,7 @@ ai-review validate-output ~/.ai-review/review-output.json
 
 On failure, inspect the error, fix the JSON, and re-validate before continuing.
 
-### Step 7 — Present summary
+### Step 8 — Present summary
 
 Print counts by severity and the top findings (up to 5):
 
@@ -113,7 +125,7 @@ Top findings:
 • [warning]  src/api.ts:102 — Missing error handling on external HTTP call
 ```
 
-### Step 8 — Ask whether to post
+### Step 9 — Ask whether to post
 
 Ask the user which minimum severity to post:
 
@@ -132,7 +144,7 @@ ai-review post-comments <MR_URL> --input ~/.ai-review/review-output.json --sever
 
 Report how many were posted and how many skipped.
 
-### Step 9 — Ask whether to update MR description
+### Step 10 — Ask whether to update MR description
 
 Ask the user:
 
@@ -152,3 +164,4 @@ Confirm success or surface any error returned.
 
 - All output files live under `~/.ai-review/` and are overwritten on each run.
 - Credentials in `~/.ai-review/credentials.json` are keyed by hostname; multiple GitLab instances are supported.
+- Review language is configured in `~/.ai-review/settings.json` as `reviewLanguage` and defaults to `English`.
