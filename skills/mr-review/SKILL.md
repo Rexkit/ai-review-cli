@@ -1,5 +1,5 @@
 ---
-name: ai-review
+name: mr-review
 description: Review a GitLab Merge Request using the ai-review CLI. Fetches the MR diff, analyses it as a senior software engineer, produces structured inline comments by severity, and optionally posts them back to GitLab. Use when the user wants to review, analyse, or post feedback on a GitLab MR.
 compatibility: Designed for Claude Code. Requires the ai-review CLI (npm install -g .) and a GitLab Personal Access Token with api and read_repository scopes.
 allowed-tools: Bash Read Write
